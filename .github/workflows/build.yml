@@ -1,7 +1,6 @@
 name: Build FFmpeg
 
 on:
-  push:
   workflow_dispatch:
     inputs:
       doRelease:
