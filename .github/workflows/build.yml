@@ -14,13 +14,14 @@ on:
         default: false
         required: false
   schedule:
-    - cron: '59 22 */14 * *'
+    - cron: '59 22 * * 4'
 
 env:
   DOCKER_BUILDKIT: 1
 
 jobs:
   pre_check:
+  
     name: Pre Checks
     if: ${{ github.event.inputs.buildOnly != 'true' }}
     runs-on: ubuntu-latest
@@ -28,6 +29,13 @@ jobs:
       - name: Repo Check
         if: ${{ github.event_name == 'schedule' }}
         run: |
+          WEEK_NUM=$((10#$(date +%V)))
+          if [ $((WEEK_NUM % 2)) -ne 0 ]; then # Skip if the week number is odd
+            echo "Skipping odd ISO week: $WEEK_NUM"
+            exit 1
+          fi
+          echo "Executing for even ISO week: $WEEK_NUM"
+          
           if [[ "$GITHUB_REPOSITORY" != "youcmd/FFmpeg-Builds" ]]; then
             echo "When forking this repository to make your own builds, you have to adjust this check."
             echo "When doing so make sure to randomize the scheduled cron time above, in order to spread out the various build times as much as possible."
