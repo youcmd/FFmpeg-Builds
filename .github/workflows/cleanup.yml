@@ -7,25 +7,33 @@ jobs:
   delete-packages:
     runs-on: ubuntu-latest
     steps:
-      - name: Delete all FFmpeg packages
+      - name: Delete all FFmpeg packages across all pages
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.DELETE_PACKAGES_TOKEN }}
           script: |
             const owner = context.repo.owner;
-            const packages = await github.rest.packages.listPackagesForUser({
+            
+            // github.paginate automatically loops through all pages of results
+            const packages = await github.paginate(github.rest.packages.listPackagesForUser, {
               package_type: 'container',
-              username: owner
+              username: owner,
+              per_page: 100
             });
 
-            for (const pkg of packages.data) {
-              // Only delete packages related to your ffmpeg build
+            console.log(`Found ${packages.length} total packages.`);
+
+            for (const pkg of packages) {
               if (pkg.name.includes('ffmpeg-builds')) {
                 console.log(`Deleting package: ${pkg.name}`);
-                await github.rest.packages.deletePackageForUser({
-                  package_type: 'container',
-                  package_name: pkg.name,
-                  username: owner
-                });
+                try {
+                  await github.rest.packages.deletePackageForUser({
+                    package_type: 'container',
+                    package_name: pkg.name,
+                    username: owner
+                  });
+                } catch (error) {
+                  console.log(`Failed to delete ${pkg.name}: ${error.message}`);
+                }
               }
             }
