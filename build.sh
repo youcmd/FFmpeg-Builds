@@ -40,11 +40,6 @@ cat <<EOF >"$BUILD_SCRIPT"
     git clone --filter=blob:none --branch='$GIT_BRANCH' '$FFMPEG_REPO' ffmpeg
     cd ffmpeg
     
-    # Apply fix if 5.1 is present in the addins list
-    if [[ "$GIT_BRANCH" == *"5.1"* ]] && [ -f "libavcodec/dca_core_bsf.c" ]; then 
-        sed -i 's/ctx->par_out->profile = FF_PROFILE_UNKNOWN;/ctx->par_out->profile = -99;/g' libavcodec/dca_core_bsf.c
-    fi
-    
     ./configure --prefix=/ffbuild/prefix --pkg-config-flags="--static" \$FFBUILD_TARGET_FLAGS \$FF_CONFIGURE \
         --extra-cflags="\$FF_CFLAGS" --extra-cxxflags="\$FF_CXXFLAGS" --extra-libs="\$FF_LIBS" \
         --extra-ldflags="\$FF_LDFLAGS" --extra-ldexeflags="\$FF_LDEXEFLAGS"'$RPATH_LDEXEFLAGS' \
