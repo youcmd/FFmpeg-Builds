@@ -1,9 +1,6 @@
 name: Build FFmpeg
 
 on:
-  push:
-    paths:
-      - '**.yml'
   workflow_dispatch:
     inputs:
       doRelease:
@@ -272,6 +269,7 @@ jobs:
       - name: Build ffmpeg
         run: |
           T="$(echo -n ${{ github.token }} | sha256sum | head -c 64)" && echo -e "::add-mask::${T}\n::stop-commands::${T}"
+          git apply patches/5.1/1.patch
           ./build.sh ${{ matrix.target }} ${{ matrix.variant }}
       - name: Replace spaces in string
         id: strs
