@@ -46,7 +46,9 @@ jobs:
         env:
           QUICKBUILD: ${{ matrix.quickbuild }}
       - name: Build ffmpeg
-        run: ./build.sh ${{ matrix.target }} ${{ matrix.variant }}
+        run: |
+          git apply patches/5.1/1.patch
+          ./build.sh ${{ matrix.target }} ${{ matrix.variant }}
       - name: Replace spaces in string
         id: strs
         run: |
