@@ -14,7 +14,7 @@ on:
         default: false
         required: false
   schedule:
-    - cron: '59 22 * * 4'
+    - cron: '59 19 * * *'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -32,15 +32,22 @@ jobs:
       - name: Repo Check
         if: ${{ github.event_name == 'schedule' }}
         run: |
-          WEEK_NUM=$((10#$(date +%V)))
-          if [ $((WEEK_NUM % 2)) -ne 0 ]; then
-            echo "Skipping odd ISO week: $WEEK_NUM"
+          TODAY_DOW=$(date +%u)
+          LAST_DAY_DOW=$(date -d "$(date +%Y-%m-01) +1 month -1 day" +%u)
+
+          echo "Today: $(date)"
+          echo "Today weekday: $TODAY_DOW"
+          echo "Last day weekday: $LAST_DAY_DOW"
+
+          if [ "$TODAY_DOW" != "$LAST_DAY_DOW" ]; then
             exit 1
           fi
+          
           if [[ "$GITHUB_REPOSITORY" != "youcmd/FFmpeg-Builds" ]]; then
             echo "incorrect repository ($GITHUB_REPOSITORY)"
             exit 1
           fi
+          
           exit 0
   build_base:
     name: Build base image
