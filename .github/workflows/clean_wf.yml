@@ -1,4 +1,4 @@
-name: Cleanup Failed Runs
+name: Cleanup Runs
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  cleanup:
+  clean_wf:
     runs-on: ubuntu-slim
     permissions:
       actions: write
@@ -39,4 +39,24 @@ jobs:
               gh run delete "$ID" --repo "$REPO" || true
             done
 
+          done
+          
+      - name: Delete Dependabot Runs Older Than 7 Days
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          REPO="${{ github.repository }}"
+          CUTOFF=$(date -u -d '7 days ago' '+%Y-%m-%dT%H:%M:%SZ')
+
+          echo "Deleting Dependabot runs created before: $CUTOFF"
+
+          gh api \
+            --paginate \
+            "repos/$REPO/actions/runs?created=%3C$CUTOFF&per_page=100" \
+            --jq '.workflow_runs[] | select(.actor.login == "dependabot[bot]") | .id' |
+          while read -r ID; do
+            [ -z "$ID" ] && continue
+
+            echo "Deleting Dependabot run: $ID"
+            gh run delete "$ID" --repo "$REPO" || true
           done
