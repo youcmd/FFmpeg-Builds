@@ -7,7 +7,7 @@ on:
 
 jobs:
   cleanup:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     permissions:
       actions: write
 
@@ -27,6 +27,6 @@ jobs:
               --jq '.workflow_runs[].id' |
             while read -r ID; do
               echo "Deleting $STATUS run: $ID"
-              gh run delete "$ID" --repo "$REPO" --confirm || true
+              gh run delete "$ID" --repo "$REPO" || true
             done
           done
