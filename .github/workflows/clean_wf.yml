@@ -11,19 +11,24 @@ jobs:
     permissions:
       actions: write
 
-    steps:      
-      - name: Delete Unsuccessful Runs
+    steps:
+      - name: Delete Unsuccessful Runs Older Than 7 Days
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           REPO="${{ github.repository }}"
-
+    
+          # Calculate the date/time from 7 days ago
+          CUTOFF=$(date -u -d '7 days ago' '+%Y-%m-%dT%H:%M:%SZ')
+    
+          echo "Deleting runs created before: $CUTOFF"
+    
           for STATUS in failure cancelled; do
             echo "Cleaning $STATUS runs..."
-
+    
             gh api \
               --paginate \
-              "repos/$REPO/actions/runs?status=$STATUS&per_page=100" \
+              "repos/$REPO/actions/runs?status=$STATUS&created=%3C$CUTOFF&per_page=100" \
               --jq '.workflow_runs[].id' |
             while read -r ID; do
               echo "Deleting $STATUS run: $ID"
