@@ -17,21 +17,26 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           REPO="${{ github.repository }}"
-    
-          # Calculate the date/time from 7 days ago
-          CUTOFF=$(date -u -d '7 days ago' '+%Y-%m-%dT%H:%M:%SZ')
-    
-          echo "Deleting runs created before: $CUTOFF"
-    
-          for STATUS in failure cancelled; do
-            echo "Cleaning $STATUS runs..."
-    
+
+          for STATUS in failure cancelled success; do
+
+            if [ "$STATUS" = "success" ]; then
+              CUTOFF=$(date -u -d '90 days ago' '+%Y-%m-%dT%H:%M:%SZ')
+            else
+              CUTOFF=$(date -u -d '7 days ago' '+%Y-%m-%dT%H:%M:%SZ')
+            fi
+
+            echo "Cleaning $STATUS runs older than: $CUTOFF"
+
             gh api \
               --paginate \
               "repos/$REPO/actions/runs?status=$STATUS&created=%3C$CUTOFF&per_page=100" \
               --jq '.workflow_runs[].id' |
             while read -r ID; do
+              [ -z "$ID" ] && continue
+
               echo "Deleting $STATUS run: $ID"
               gh run delete "$ID" --repo "$REPO" || true
             done
+
           done
