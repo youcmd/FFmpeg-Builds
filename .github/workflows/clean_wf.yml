@@ -1,0 +1,32 @@
+name: Cleanup Failed Runs
+
+on:
+  schedule:
+    - cron: '59 23 * * 1'
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+
+    steps:      
+      - name: Delete Unsuccessful Runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          REPO="${{ github.repository }}"
+
+          for STATUS in failure cancelled; do
+            echo "Cleaning $STATUS runs..."
+
+            gh api \
+              --paginate \
+              "repos/$REPO/actions/runs?status=$STATUS&per_page=100" \
+              --jq '.workflow_runs[].id' |
+            while read -r ID; do
+              echo "Deleting $STATUS run: $ID"
+              gh run delete "$ID" --repo "$REPO" --confirm || true
+            done
+          done
