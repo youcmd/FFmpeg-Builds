@@ -1,0 +1,39 @@
+name: Global Package Cleanup
+
+on:
+  workflow_dispatch: # Allows you to run this manually from the Actions tab
+
+jobs:
+  delete-packages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete all FFmpeg packages across all pages
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.DELETE_PACKAGES_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            
+            // github.paginate automatically loops through all pages of results
+            const packages = await github.paginate(github.rest.packages.listPackagesForUser, {
+              package_type: 'container',
+              username: owner,
+              per_page: 100
+            });
+
+            console.log(`Found ${packages.length} total packages.`);
+
+            for (const pkg of packages) {
+              if (pkg.name.includes('ffmpeg-builds')) {
+                console.log(`Deleting package: ${pkg.name}`);
+                try {
+                  await github.rest.packages.deletePackageForUser({
+                    package_type: 'container',
+                    package_name: pkg.name,
+                    username: owner
+                  });
+                } catch (error) {
+                  console.log(`Failed to delete ${pkg.name}: ${error.message}`);
+                }
+              }
+            }
