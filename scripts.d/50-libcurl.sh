@@ -58,7 +58,6 @@ ffbuild_dockerbuild() {
         mycmake+=(
             -DCURL_USE_OPENSSL=ON
             -DOPENSSL_USE_STATIC_LIBS=ON
-            -DCURL_CA_FALLBACK=ON
         )
     fi
 
