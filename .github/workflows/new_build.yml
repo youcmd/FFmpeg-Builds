@@ -14,7 +14,7 @@ on:
         default: false
         required: false
   schedule:
-    - cron: '59 19 * * *'
+    - cron: '59 18 * * *'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
