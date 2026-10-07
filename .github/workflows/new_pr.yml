@@ -25,7 +25,9 @@ jobs:
         uses: actions/checkout@v7
       - name: Apply Win64 patch
         if: ${{ matrix.target == 'win64' }}
-        run: git apply patches/clean-win64-config.patch
+        run: |
+          git apply --check patches/clean-win64-config.patch
+          git apply patches/clean-win64-config.patch
       - name: Free Disk-Space
         run: ./util/free_disk_space.sh
       - name: Install buildx
