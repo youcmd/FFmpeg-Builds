@@ -1,7 +1,20 @@
+From [redacted]
+From: [redacted]
+Date: [redacted]
+Subject: [PATCH] Clean Win64 FFmpeg configure arguments
+
+---
+ images/base-win64/Dockerfile | 18 +++++++++++-------
+ build.sh                     | 24 ++++++++++++++++++------
+ 2 files changed, 29 insertions(+), 13 deletions(-)
+
 diff --git a/images/base-win64/Dockerfile b/images/base-win64/Dockerfile
+index eacbdebdd8..371a0c4e03 100644
 --- a/images/base-win64/Dockerfile
 +++ b/images/base-win64/Dockerfile
-@@ -41,2 +41,7 @@
+@@ -43,18 +43,22 @@ ENV PATH="/opt/ct-ng/bin:${PATH}" \
+     FFBUILD_DESTDIR=/opt/ffdest \
+     FFBUILD_DESTPREFIX=/opt/ffdest/opt/ffbuild \
      FFBUILD_CMAKE_TOOLCHAIN=/toolchain.cmake \
 +    prefix=/ffbuild/prefix \
 +    cross_prefix=${FFBUILD_TOOLCHAIN}- \
@@ -9,7 +22,6 @@ diff --git a/images/base-win64/Dockerfile b/images/base-win64/Dockerfile
 +    target_os=mingw32 \
 +    pkg_config=pkg-config \
      PKG_CONFIG=pkg-config \
-@@ -43,2 +48,9 @@
      PKG_CONFIG_LIBDIR=/opt/ffbuild/lib/pkgconfig:/opt/ffbuild/share/pkgconfig \
 +    cc="${FFBUILD_TOOLCHAIN}-gcc" \
 +    cxx="${FFBUILD_TOOLCHAIN}-g++" \
@@ -18,22 +30,43 @@ diff --git a/images/base-win64/Dockerfile b/images/base-win64/Dockerfile
 +    ranlib="${FFBUILD_TOOLCHAIN}-gcc-ranlib" \
 +    nm="${FFBUILD_TOOLCHAIN}-gcc-nm" \
      CC="${FFBUILD_TOOLCHAIN}-gcc" \
+     CXX="${FFBUILD_TOOLCHAIN}-g++" \
+     LD="${FFBUILD_TOOLCHAIN}-ld" \
+     AR="${FFBUILD_TOOLCHAIN}-gcc-ar" \
+     RANLIB="${FFBUILD_TOOLCHAIN}-gcc-ranlib" \
+     NM="${FFBUILD_TOOLCHAIN}-gcc-nm" \
+-    DLLTOOL="${FFBUILD_TOOLCHAIN}-dlltool" \
+-    GENDEF="${FFBUILD_TOOLCHAIN}-gendef" \
+-    CFLAGS="-static-libgcc -static-libstdc++ -I/opt/ffbuild/include -O2 -pipe -D_FORTIFY_SOURCE=2 -fstack-protector-strong" \
+-    CXXFLAGS="-static-libgcc -static-libstdc++ -I/opt/ffbuild/include -O2 -pipe -D_FORTIFY_SOURCE=2 -fstack-protector-strong" \
+-    LDFLAGS="-static-libgcc -static-libstdc++ -L/opt/ffbuild/lib -O2 -pipe -fstack-protector-strong" \
+-    STAGE_CFLAGS="-fno-semantic-interposition" \
+-    STAGE_CXXFLAGS="-fno-semantic-interposition"
+
 diff --git a/build.sh b/build.sh
+index a97e55c906..d00d364ff2 100755
 --- a/build.sh
 +++ b/build.sh
-@@ -35,5 +35,14 @@
+@@ -39,12 +39,24 @@ cat <<EOF >"$BUILD_SCRIPT"
+ 
+     git clone --filter=blob:none --branch='$GIT_BRANCH' '$FFMPEG_REPO' ffmpeg
+     cd ffmpeg
+-
 -    ./configure --prefix=/ffbuild/prefix --pkg-config-flags="--static" \$FFBUILD_TARGET_FLAGS \$FF_CONFIGURE \
 -        --extra-cflags="\$FF_CFLAGS" --extra-cxxflags="\$FF_CXXFLAGS" --extra-libs="\$FF_LIBS" \
--        --extra-ldflags="\$FF_LDFLAGS" --extra-ldexeflags="\$FF_LDEXEFLAGS" \
+-        --extra-ldflags="\$FF_LDFLAGS" --extra-ldexeflags="\$FF_LDEXEFLAGS"'$RPATH_LDEXEFLAGS' \
 -        --cc="\$CC" --cxx="\$CXX" --ar="\$AR" --ranlib="\$RANLIB" --nm="\$NM" \
 -        --extra-version="\$(date +%Y%m%d)" || { cat ffbuild/config.log; exit 1; }
++    
 +    if [[ '$TARGET' == win64 ]]; then
 +        export CFLAGS="\$CFLAGS \$FF_CFLAGS"
 +        export CXXFLAGS="\$CXXFLAGS \$FF_CXXFLAGS"
 +        export LDFLAGS="\$LDFLAGS \$FF_LDFLAGS"
 +        export LDEXEFLAGS="\$LDEXEFLAGS \$FF_LDEXEFLAGS"
 +        export LIBS="\$LIBS \$FF_LIBS"
-+        ./configure --pkg-config-flags="--static" \$FF_CONFIGURE || { cat ffbuild/config.log; exit 1; }
++
++        ./configure --pkg-config-flags="--static" \$FF_CONFIGURE \
++            || { cat ffbuild/config.log; exit 1; }
 +    else
 +        ./configure --prefix=/ffbuild/prefix --pkg-config-flags="--static" \$FFBUILD_TARGET_FLAGS \$FF_CONFIGURE \
 +            --extra-cflags="\$FF_CFLAGS" --extra-cxxflags="\$FF_CXXFLAGS" --extra-libs="\$FF_LIBS" \
@@ -41,3 +74,7 @@ diff --git a/build.sh b/build.sh
 +            --cc="\$CC" --cxx="\$CXX" --ar="\$AR" --ranlib="\$RANLIB" --nm="\$NM" \
 +            --extra-version="\$(date +%Y%m%d)" || { cat ffbuild/config.log; exit 1; }
 +    fi
++    
+     make -j\$(nproc) V=1
+     make install install-doc
+ EOF
