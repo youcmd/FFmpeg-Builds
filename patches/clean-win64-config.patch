@@ -1,15 +1,14 @@
 diff --git a/images/base-win64/Dockerfile b/images/base-win64/Dockerfile
 --- a/images/base-win64/Dockerfile
 +++ b/images/base-win64/Dockerfile
-@@ -33,10 +33,14 @@ RUN \
- ADD toolchain.cmake /toolchain.cmake
- ADD cross.meson /cross.meson
+@@ -35,7 +35,7 @@ ADD cross.meson /cross.meson
  ENV PATH="/opt/ct-ng/bin:${PATH}" \
 -    FFBUILD_TARGET_FLAGS="--pkg-config=pkg-config --cross-prefix=${FFBUILD_TOOLCHAIN}- --arch=x86_64 --target-os=mingw32" \
 +    FFBUILD_TARGET_FLAGS="" \
      FFBUILD_CROSS_PREFIX=${FFBUILD_TOOLCHAIN}- \
      FFBUILD_PREFIX=/opt/ffbuild \
      FFBUILD_DESTDIR=/opt/ffdest \
+@@ -40,6 +40,10 @@ ENV PATH="/opt/ct-ng/bin:${PATH}" \
      FFBUILD_DESTPREFIX=/opt/ffdest/opt/ffbuild \
      FFBUILD_CMAKE_TOOLCHAIN=/toolchain.cmake \
 +    prefix=/ffbuild/prefix \
@@ -30,27 +29,16 @@ diff --git a/images/base-win64/Dockerfile b/images/base-win64/Dockerfile
 diff --git a/build.sh b/build.sh
 --- a/build.sh
 +++ b/build.sh
-@@ -33,12 +33,21 @@ cat <<EOF >"$BUILD_SCRIPT"
-     set -xe
-     cd /ffbuild
-     rm -rf ffmpeg prefix
+@@ -36,7 +36,11 @@ cat <<EOF >"$BUILD_SCRIPT"
      git clone --filter=blob:none --branch='$GIT_BRANCH' '$FFMPEG_REPO' ffmpeg
      cd ffmpeg
 -    ./configure --prefix=/ffbuild/prefix --pkg-config-flags="--static" \$FFBUILD_TARGET_FLAGS \$FF_CONFIGURE \
--        --extra-cflags="\$FF_CFLAGS" --extra-cxxflags="\$FF_CXXFLAGS" --extra-libs="\$FF_LIBS" \
--        --extra-ldflags="\$FF_LDFLAGS" --extra-ldexeflags="\$FF_LDEXEFLAGS"'$RPATH_LDEXEFLAGS' \
--        --cc="\$CC" --cxx="\$CXX" --ar="\$AR" --ranlib="\$RANLIB" --nm="\$NM" \
--        --extra-version="\$(date +%Y%m%d)" || { cat ffbuild/config.log; exit 1; }
 +    if [[ '$TARGET' == win64 ]]; then
-+        extra_version="\$(date +%Y%m%d)"
 +        ./configure --pkg-config-flags="--static" \$FF_CONFIGURE || { cat ffbuild/config.log; exit 1; }
 +    else
 +        ./configure --prefix=/ffbuild/prefix --pkg-config-flags="--static" \$FFBUILD_TARGET_FLAGS \$FF_CONFIGURE \
-+            --extra-cflags="\$FF_CFLAGS" --extra-cxxflags="\$FF_CXXFLAGS" --extra-libs="\$FF_LIBS" \
-+            --extra-ldflags="\$FF_LDFLAGS" --extra-ldexeflags="\$FF_LDEXEFLAGS"'$RPATH_LDEXEFLAGS' \
-+            --cc="\$CC" --cxx="\$CXX" --ar="\$AR" --ranlib="\$RANLIB" --nm="\$NM" \
-+            --extra-version="\$(date +%Y%m%d)" || { cat ffbuild/config.log; exit 1; }
+         --extra-cflags="\$FF_CFLAGS" --extra-cxxflags="\$FF_CXXFLAGS" --extra-libs="\$FF_LIBS" \
+         --extra-ldflags="\$FF_LDFLAGS" --extra-ldexeflags="\$FF_LDEXEFLAGS"'$RPATH_LDEXEFLAGS' \
+         --cc="\$CC" --cxx="\$CXX" --ar="\$AR" --ranlib="\$RANLIB" --nm="\$NM" \
+         --extra-version="\$(date +%Y%m%d)" || { cat ffbuild/config.log; exit 1; }
 +    fi
-     make -j\$(nproc) V=1
-     make install install-doc
- EOF
