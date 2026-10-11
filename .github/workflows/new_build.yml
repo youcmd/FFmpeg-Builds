@@ -32,14 +32,14 @@ jobs:
       - name: Repo Check
         if: ${{ github.event_name == 'schedule' }}
         run: |
-          TODAY_DOW=$(date +%u)
-          LAST_DAY_DOW=$(date -d "$(date +%Y-%m-01) +1 month -1 day" +%u)
-
-          echo "Today: $(date)"
-          echo "Today weekday: $TODAY_DOW"
-          echo "Last day weekday: $LAST_DAY_DOW"
-
-          if [ "$TODAY_DOW" != "$LAST_DAY_DOW" ]; then
+          TODAY=$(date +%d)
+          LAST_DAY=$(date -d "$(date +%Y-%m-01) +1 month -1 day" +%d)
+          
+          if (( (10#$LAST_DAY - 10#$TODAY) % 6 != 0 )); then
+            echo "Not a scheduled build day. Skipping."
+            echo "Today: $(date)"
+            echo "Day of month: $TODAY"
+            echo "Last day of month: $LAST_DAY"
             exit 1
           fi
           
