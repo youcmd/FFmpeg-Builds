@@ -35,10 +35,6 @@ jobs:
           TODAY=$(date +%-d)
           LAST_DAY=$(date -d "$(date +%Y-%m-01) +1 month -1 day" +%-d)
           
-          if (( TODAY == 1 && LAST_DAY == 31 )); then
-            exit 1
-          fi
-          
           if (( (LAST_DAY - TODAY) % 6 != 0 && !(LAST_DAY == 31 && TODAY == 4) )); then
             exit 1
           fi
