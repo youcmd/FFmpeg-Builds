@@ -35,8 +35,16 @@ ffbuild_dockerbuild() {
 
 ffbuild_configure() {
     echo --enable-libfdk-aac
+    
+    if (( $(ffbuild_ffver) > 900 )); then
+        echo --enable-libfdk-xhe-aac
+    fi
 }
 
 ffbuild_unconfigure() {
     echo --disable-libfdk-aac
+    
+    if (( $(ffbuild_ffver) > 900 )); then
+        echo --disable-libfdk-xhe-aac
+    fi
 }
