@@ -47,7 +47,7 @@ jobs:
             exit 1
           fi
           
-          if [[ "$GITHUB_REPOSITORY" != "youcmd/FFmpeg_Builds" ]]; then
+          if [[ "$GITHUB_REPOSITORY" != "youcmd/FFmpeg-Builds" ]]; then
             echo "incorrect repository ($GITHUB_REPOSITORY)"
             exit 1
           fi
