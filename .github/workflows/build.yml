@@ -471,6 +471,7 @@ jobs:
           gh release create "$TAGNAME" --target "master" --title "$NAME" --notes-file latest_body.md latest_artifacts/*
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          ASS: ${{ secrets.ASS }}
       - name: Prune old releases
         run: ./util/prunetags.sh
         env:
