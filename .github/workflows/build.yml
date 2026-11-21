@@ -455,6 +455,7 @@ jobs:
           echo "rel_date=${RELDATE}" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          ASS: ${{ secrets.ASS }}
       - name: Update Latest
         run: |
           set -xe
