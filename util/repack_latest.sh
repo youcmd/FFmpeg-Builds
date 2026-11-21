@@ -50,7 +50,10 @@ while [[ $# -gt 0 ]]; do
         else
             cp "$INPUT" "$OUTPUT"
             7z rn -bso0 -bsp0 -p"${ASS}" "$OUTPUT" "$INAME" "$ONAME"
-            [[ "$(bsdtar -tf "$OUTPUT" | head -1 | cut -d/ -f1)" == "$ONAME" ]]
+            ROOT_NAME="$(7z l -slt -p"${ASS}" "$OUTPUT" |
+                awk -F' = ' '$1 == "Path" {print $2; exit}' |
+                cut -d/ -f1)"
+            [[ "$ROOT_NAME" == "$ONAME" ]]
         fi
     ) &
 
