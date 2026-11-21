@@ -49,7 +49,7 @@ while [[ $# -gt 0 ]]; do
             bsdtar -cf "$OUTPUT" --format gnutar --xz --options xz:threads=0 -s "|^$INAME/|$ONAME/|" "@$INPUT"
         else
             cp "$INPUT" "$OUTPUT"
-            7z rn -bso0 -bsp0 "$OUTPUT" "$INAME" "$ONAME"
+            7z rn -bso0 -bsp0 -p"${ASS}" "$OUTPUT" "$INAME" "$ONAME"
             [[ "$(bsdtar -tf "$OUTPUT" | head -1 | cut -d/ -f1)" == "$ONAME" ]]
         fi
     ) &
