@@ -27,8 +27,8 @@ while [[ $# -gt 0 ]]; do
             echo "Unknown input file type: $INPUT"
             exit 1
         fi
-
-        INAME="$(bsdtar -tf "$INPUT" | head -1 | cut -d/ -f1)"
+        
+        INAME="$(7z l -slt -p"${ASS}" "$INPUT" | awk -F' = ' '/^Path = / {split($2, a, "/"); print a[1]; exit}')"
         TAGNAME="$(cut -d- -f2 <<<"$INAME")"
 
         if [[ $TAGNAME == N ]]; then
