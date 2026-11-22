@@ -27,8 +27,13 @@ while [[ $# -gt 0 ]]; do
             echo "Unknown input file type: $INPUT"
             exit 1
         fi
-        
-        INAME="$(7z l -slt -p"${ASS}" "$INPUT" | awk -F' = ' '/^Path = / {split($2, a, "/"); print a[1]; exit}')"
+
+        if [[ $OUTEXT == 7z ]]; then
+            INAME="$(7z l -slt -p"$ASS" "$INPUT" | awk -F' = ' '/^----------$/ {listing=1; next} listing && $1 == "Path" {split($2, a, "/"); print a[1]; exit}')"
+        else
+            INAME="$(bsdtar -tf "$INPUT" | head -1 | cut -d/ -f1)"
+        fi
+
         TAGNAME="$(cut -d- -f2 <<<"$INAME")"
 
         if [[ $TAGNAME == N ]]; then
@@ -49,10 +54,15 @@ while [[ $# -gt 0 ]]; do
             bsdtar -cf "$OUTPUT" --format gnutar --xz --options xz:threads=0 -s "|^$INAME/|$ONAME/|" "@$INPUT"
         else
             cp "$INPUT" "$OUTPUT"
-            7z rn -bso0 -bsp0 -p"${ASS}" "$OUTPUT" "$INAME" "$ONAME"
-            ROOT_NAME="$(7z l -slt -p"${ASS}" "$OUTPUT" |
-                awk -F' = ' '$1 == "Path" {print $2; exit}' |
-                cut -d/ -f1)"
+
+            if [[ $OUTEXT == 7z ]]; then
+                7z rn -bso0 -bsp0 -p"$ASS" "$OUTPUT" "$INAME" "$ONAME"
+                ROOT_NAME="$(7z l -slt -p"$ASS" "$OUTPUT" | awk -F' = ' '/^----------$/ {listing=1; next} listing && $1 == "Path" {split($2, a, "/"); print a[1]; exit}')"
+            else
+                7z rn -bso0 -bsp0 "$OUTPUT" "$INAME" "$ONAME"
+                ROOT_NAME="$(bsdtar -tf "$OUTPUT" | head -1 | cut -d/ -f1)"
+            fi
+
             [[ "$ROOT_NAME" == "$ONAME" ]]
         fi
     ) &
